@@ -11,12 +11,12 @@ import android.util.Log;
 import java.lang.reflect.Method;
 
 public class WifiHotspotManager {
-  private final WifiManager mWifiManager;
+  private final WifiManager wifiManager;
   private Context context;
 
   public WifiHotspotManager(Context context) {
     this.context = context;
-    mWifiManager = (WifiManager) this.context.getSystemService(Context.WIFI_SERVICE);
+    wifiManager = (WifiManager) this.context.getSystemService(Context.WIFI_SERVICE);
   }
 
 
@@ -34,11 +34,11 @@ public class WifiHotspotManager {
   public boolean setWifiEnabled(WifiConfiguration wifiConfig, boolean enabled) {
     try {
       if (enabled) { // disable WiFi in any case
-        mWifiManager.setWifiEnabled(false);
+        wifiManager.setWifiEnabled(false);
       }
 
-      Method method = mWifiManager.getClass().getMethod("setWifiApEnabled", WifiConfiguration.class, boolean.class);
-      return (Boolean) method.invoke(mWifiManager, wifiConfig, enabled);
+      Method method = wifiManager.getClass().getMethod("setWifiApEnabled", WifiConfiguration.class, boolean.class);
+      return (Boolean) method.invoke(wifiManager, wifiConfig, enabled);
     } catch (Exception e) {
       Log.e(this.getClass().toString(), "", e);
       return false;
@@ -47,9 +47,9 @@ public class WifiHotspotManager {
 
   public WIFI_AP_STATE getWifiApState() {
     try {
-      Method method = mWifiManager.getClass().getMethod("getWifiApState");
+      Method method = wifiManager.getClass().getMethod("getWifiApState");
 
-      int tmp = ((Integer) method.invoke(mWifiManager));
+      int tmp = ((Integer) method.invoke(wifiManager));
 
       // Fix for Android 4
       if (tmp >= 10) {
@@ -69,8 +69,8 @@ public class WifiHotspotManager {
 
   public WifiConfiguration getWifiApConfiguration() {
     try {
-      Method method = mWifiManager.getClass().getMethod("getWifiApConfiguration");
-      return (WifiConfiguration) method.invoke(mWifiManager);
+      Method method = wifiManager.getClass().getMethod("getWifiApConfiguration");
+      return (WifiConfiguration) method.invoke(wifiManager);
     } catch (Exception e) {
       Log.e(this.getClass().toString(), "", e);
       return null;
@@ -79,8 +79,8 @@ public class WifiHotspotManager {
 
   public boolean setWifiApConfiguration(WifiConfiguration wifiConfig) {
     try {
-      Method method = mWifiManager.getClass().getMethod("setWifiApConfiguration", WifiConfiguration.class);
-      return (Boolean) method.invoke(mWifiManager, wifiConfig);
+      Method method = wifiManager.getClass().getMethod("setWifiApConfiguration", WifiConfiguration.class);
+      return (Boolean) method.invoke(wifiManager, wifiConfig);
     } catch (Exception e) {
       Log.e(this.getClass().toString(), "", e);
       return false;

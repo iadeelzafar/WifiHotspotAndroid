@@ -6,13 +6,16 @@ import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.Handler;
 import android.provider.Settings;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 import java.lang.reflect.Method;
 
 public class WifiHotspotManager {
   private final WifiManager wifiManager;
   private Context context;
+  private WifiManager.LocalOnlyHotspotReservation hotspotReservation;
 
   public WifiHotspotManager(Context context) {
     this.context = context;
@@ -42,6 +45,43 @@ public class WifiHotspotManager {
     } catch (Exception e) {
       Log.e(this.getClass().toString(), "", e);
       return false;
+    }
+  }
+
+  //Workaround to turn on hotspot for Oreo versions
+  @RequiresApi(api = Build.VERSION_CODES.O)
+  public void turnOnHotspot() {
+    Log.v("DANG", "Coming 1");
+    wifiManager.startLocalOnlyHotspot(new WifiManager.LocalOnlyHotspotCallback() {
+
+
+
+      @Override
+      public void onStarted(WifiManager.LocalOnlyHotspotReservation reservation) {
+        super.onStarted(reservation);
+        Log.v("DANG", "Coming 2");
+        hotspotReservation = reservation;
+      }
+
+      @Override
+      public void onStopped() {
+        super.onStopped();
+        Log.v("DANG", "Local Hotspot Stopped");
+      }
+
+      @Override
+      public void onFailed(int reason) {
+        super.onFailed(reason);
+        Log.v("DANG", "Local Hotspot failed to start");
+      }
+    }, new Handler());
+  }
+
+  //Workaround to turn off hotspot for Oreo versions
+  @RequiresApi(api = Build.VERSION_CODES.O)
+  public void turnOffHotspot() {
+    if (hotspotReservation != null) {
+      hotspotReservation.close();
     }
   }
 

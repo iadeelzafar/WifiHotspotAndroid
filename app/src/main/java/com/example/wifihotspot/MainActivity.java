@@ -1,5 +1,10 @@
 package com.example.wifihotspot;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -10,6 +15,7 @@ public class MainActivity extends AppCompatActivity {
 
   WifiHotspotManager wifiHotspotManager;
   TextView wifiApState;
+  private final int MY_PERMISSIONS_ACCESS_COARSE_LOCATION = 101;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -34,12 +40,29 @@ public class MainActivity extends AppCompatActivity {
   @Override public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       case 1:
-        wifiHotspotManager.setWifiEnabled(null, true);
-        updateWifiApState();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+          if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+              == PackageManager.PERMISSION_GRANTED) {
+            wifiHotspotManager.turnOnHotspot();
+          } else {
+            // Show rationale and request permission.
+            // No explanation needed; request the permission
+            ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                MY_PERMISSIONS_ACCESS_COARSE_LOCATION);
+          }
+
+        }
+        else
+        {wifiHotspotManager.setWifiEnabled(null, true);
+        updateWifiApState();}
         break;
       case 2:
-        wifiHotspotManager.setWifiEnabled(null, false);
-        updateWifiApState();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+          wifiHotspotManager.turnOffHotspot();
+        else
+        { wifiHotspotManager.setWifiEnabled(null, false);
+        updateWifiApState();}
         break;
     }
     return super.onOptionsItemSelected(item);

@@ -16,6 +16,7 @@ public class WifiHotspotManager {
   private final WifiManager wifiManager;
   private Context context;
   private WifiManager.LocalOnlyHotspotReservation hotspotReservation;
+  private boolean oreoenabled=false;
 
   public WifiHotspotManager(Context context) {
     this.context = context;
@@ -52,29 +53,30 @@ public class WifiHotspotManager {
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void turnOnHotspot() {
     Log.v("DANG", "Coming 1");
-    wifiManager.startLocalOnlyHotspot(new WifiManager.LocalOnlyHotspotCallback() {
+    if(!oreoenabled) {
+      wifiManager.startLocalOnlyHotspot(new WifiManager.LocalOnlyHotspotCallback() {
 
+        @Override
+        public void onStarted(WifiManager.LocalOnlyHotspotReservation reservation) {
+          super.onStarted(reservation);
+          Log.v("DANG", "Coming 2");
+          hotspotReservation = reservation;
+          oreoenabled = true;
+        }
 
+        @Override
+        public void onStopped() {
+          super.onStopped();
+          Log.v("DANG", "Local Hotspot Stopped");
+        }
 
-      @Override
-      public void onStarted(WifiManager.LocalOnlyHotspotReservation reservation) {
-        super.onStarted(reservation);
-        Log.v("DANG", "Coming 2");
-        hotspotReservation = reservation;
-      }
-
-      @Override
-      public void onStopped() {
-        super.onStopped();
-        Log.v("DANG", "Local Hotspot Stopped");
-      }
-
-      @Override
-      public void onFailed(int reason) {
-        super.onFailed(reason);
-        Log.v("DANG", "Local Hotspot failed to start");
-      }
-    }, new Handler());
+        @Override
+        public void onFailed(int reason) {
+          super.onFailed(reason);
+          Log.v("DANG", "Local Hotspot failed to start");
+        }
+      }, new Handler());
+    }
   }
 
   //Workaround to turn off hotspot for Oreo versions
@@ -82,6 +84,7 @@ public class WifiHotspotManager {
   public void turnOffHotspot() {
     if (hotspotReservation != null) {
       hotspotReservation.close();
+      oreoenabled=false;
     }
   }
 

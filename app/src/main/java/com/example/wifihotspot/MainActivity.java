@@ -16,6 +16,7 @@ public class MainActivity extends AppCompatActivity {
   WifiHotspotManager wifiHotspotManager;
   TextView wifiApState;
   private final int MY_PERMISSIONS_ACCESS_COARSE_LOCATION = 101;
+  private final int MY_PERMISSIONS_ACCESS_FINE_LOCATION = 102;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -41,15 +42,16 @@ public class MainActivity extends AppCompatActivity {
     switch (item.getItemId()) {
       case 1:
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-          if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+          if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
               == PackageManager.PERMISSION_GRANTED) {
             wifiHotspotManager.turnOnHotspot();
-          } else {
-            // Show rationale and request permission.
-            // No explanation needed; request the permission
+          }
+        else {
+             //Show rationale and request permission.
+             //No explanation needed; request the permission
             ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                MY_PERMISSIONS_ACCESS_COARSE_LOCATION);
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                MY_PERMISSIONS_ACCESS_FINE_LOCATION);
           }
 
         }

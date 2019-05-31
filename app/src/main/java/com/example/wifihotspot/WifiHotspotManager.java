@@ -20,6 +20,7 @@ public class WifiHotspotManager {
   private Context context;
   private WifiManager.LocalOnlyHotspotReservation hotspotReservation;
   private boolean oreoenabled=false;
+  private WifiConfiguration currentConfig;
 
   public WifiHotspotManager(Context context) {
     this.context = context;
@@ -57,15 +58,18 @@ public class WifiHotspotManager {
   //Workaround to turn on hotspot for Oreo versions
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void turnOnHotspot() {
-    Log.v("DANG", "Coming 1");
+    //Log.v("DANG", "Coming 1");
     if(!oreoenabled) {
       wifiManager.startLocalOnlyHotspot(new WifiManager.LocalOnlyHotspotCallback() {
 
         @Override
         public void onStarted(WifiManager.LocalOnlyHotspotReservation reservation) {
           super.onStarted(reservation);
-          Log.v("DANG", "Coming 2");
+          //Log.v("DANG", "Coming 2");
           hotspotReservation = reservation;
+          currentConfig = reservation.getWifiConfiguration();
+          Toast.makeText(context,"THE PASSWORD IS: "+currentConfig.preSharedKey+" \n SSID is : "+currentConfig.SSID,Toast.LENGTH_LONG).show();
+          Log.v("DANG","THE PASSWORD IS: "+currentConfig.preSharedKey+" \n SSID is : "+currentConfig.SSID);
           oreoenabled = true;
         }
 

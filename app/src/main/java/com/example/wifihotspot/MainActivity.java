@@ -1,9 +1,11 @@
 package com.example.wifihotspot;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.os.Build;
@@ -16,6 +18,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import java.lang.reflect.Method;
 
 public class MainActivity extends AppCompatActivity {
@@ -24,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
   TextView wifiApState;
   private final int MY_PERMISSIONS_ACCESS_COARSE_LOCATION = 101;
   private final int MY_PERMISSIONS_ACCESS_FINE_LOCATION = 102;
+  private Task<LocationSettingsResponse> task;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
           if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
               == PackageManager.PERMISSION_GRANTED) {
-            wifiHotspotManager.turnOnHotspot();
+            setupLocationServices();
           }
         else {
              //Show rationale and request permission.
@@ -115,5 +128,78 @@ public class MainActivity extends AppCompatActivity {
       Log.e("DANG ",e.toString());
     }
     return enabled;
+  }
+
+  private void setupLocationServices()
+  {
+    LocationRequest mLocationRequest = new LocationRequest();
+    mLocationRequest.setInterval(10);
+    mLocationRequest.setSmallestDisplacement(10);
+    mLocationRequest.setFastestInterval(10);
+    mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    LocationSettingsRequest.Builder builder = new
+        LocationSettingsRequest.Builder();
+    builder.addLocationRequest(mLocationRequest);
+
+    task= LocationServices.getSettingsClient(this).checkLocationSettings(builder.build());
+
+    task.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
+      @Override
+      public void onComplete(Task<LocationSettingsResponse> task) {
+        try {
+          LocationSettingsResponse response = task.getResult(ApiException.class);
+          // All location settings are satisfied. The client can initialize location
+          // requests here.
+          if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O)
+          wifiHotspotManager.turnOnHotspot();
+
+        } catch (ApiException exception) {
+          switch (exception.getStatusCode()) {
+            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+              // Location settings are not satisfied. But could be fixed by showing the
+              // user a dialog.
+              try {
+                // Cast to a resolvable exception.
+                ResolvableApiException resolvable = (ResolvableApiException) exception;
+                // Show the dialog by calling startResolutionForResult(),
+                // and check the result in onActivityResult().
+                resolvable.startResolutionForResult(
+                    MainActivity.this,
+                    101);
+              } catch (IntentSender.SendIntentException e) {
+                // Ignore the error.
+              } catch (ClassCastException e) {
+                // Ignore, should be an impossible error.
+              }
+              break;
+            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+              // Location settings are not satisfied. However, we have no way to fix the
+              // settings so we won't show the dialog.
+              break;
+          }
+        }
+      }
+    });
+  }
+
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    final LocationSettingsStates states = LocationSettingsStates.fromIntent(data);
+    switch (requestCode) {
+      case 101:
+        switch (resultCode) {
+          case Activity.RESULT_OK:
+            // All required changes were successfully made
+            Toast.makeText(MainActivity.this,states.isLocationPresent()+"",Toast.LENGTH_SHORT).show();
+            break;
+          case Activity.RESULT_CANCELED:
+            // The user was asked to change settings, but chose not to
+            Toast.makeText(MainActivity.this,"Canceled",Toast.LENGTH_SHORT).show();
+            break;
+          default:
+            break;
+        }
+        break;
+    }
   }
 }

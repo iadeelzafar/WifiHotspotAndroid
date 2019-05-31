@@ -1,7 +1,9 @@
 package com.example.wifihotspot;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
@@ -10,6 +12,7 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.widget.Toast;
 import java.lang.reflect.Method;
 
 public class WifiHotspotManager {
@@ -40,6 +43,8 @@ public class WifiHotspotManager {
       if (enabled) { // disable WiFi in any case
         wifiManager.setWifiEnabled(false);
       }
+
+
 
       Method method = wifiManager.getClass().getMethod("setWifiApEnabled", WifiConfiguration.class, boolean.class);
       return (Boolean) method.invoke(wifiManager, wifiConfig, enabled);
@@ -129,4 +134,5 @@ public class WifiHotspotManager {
       return false;
     }
   }
+
 }
